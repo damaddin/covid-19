@@ -67,7 +67,7 @@
                 if (currentRate < 1) currentRate = 1;
             }
 
-            // active cases hack: after confirmation, 14 days of sickness.
+            // active cases: after confirmation, x days of sickness.
             var newCases = [];
             newCases[0] = 0;
 
@@ -132,7 +132,7 @@
         for (var i = growthRate.length - growthRateSample; i < growthRate.length; i++) {
             decrease += growthRate[i-1] - growthRate[i];
         }
-        decrease = decrease / growthRateSample;
+        decrease = 0.006; //decrease / growthRateSample;
 
         document.getElementById("decrease").textContent = decrease;
         return decrease;

@@ -5,7 +5,9 @@ Trying to extrapolate with a simple model on current data. Feel free to suggest 
 
 It has lots of shortcomings, in particular:
 
-* just extrapolating how the measures will stop new infections and assuming we can get that to zero (magic number: sampling x days of decrease in growth rate).
+* just extrapolating how the measures will stop new infections and assuming we can get that to zero 
+  * 1st try: magic number, sampling x days of decrease in growth rate. is volatile due to unstable decrease and sometimes increase
+  * 2nd try: just put fixed number as seen in countries with large lockdown (germany, italy etc).
 * active cases assume a confirmed case will recover in 14 days (or so, look at the code)
 * proper models would look at more indicative factors as described here: https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Steckbrief.html
 
