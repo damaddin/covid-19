@@ -1,0 +1,81 @@
+
+<!doctype html>
+
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Infection Growth Factor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+    
+  </head>
+
+  <body>
+    <canvas id="chart"></canvas>
+
+    <div id="decrease"></div> average growth rate decrease over last 3 days (aka are measures effective)
+
+  </body>
+
+  <script src="util.js"></script>
+
+  <script>
+    chart.options.scales.yAxes[0].scaleLabel.labelString = 'Growth factor';
+
+    start(generateData(), generatePrediction());
+
+    function generateData() {
+        return data => {
+            
+            let count = 0;
+            var result = data.map(e => {
+                count ++;
+                return e.confirmed;
+            });
+
+           /* for (var i = 0; i < count; i++) {
+                result.push(0);
+            }*/
+            return result;
+        };
+    }
+
+
+    function generatePrediction() {
+        return data => {
+            let prev;
+            var growthRate = data.map(e => {
+                const r = e.confirmed / prev;
+                prev = e.confirmed;
+                return r;
+            });
+
+            // get the decrease in growth factor over the last 5 days;
+            let decrease = 0;
+            for (var i = growthRate.length - 7; i < growthRate.length; i++) {
+                decrease += growthRate[i-1] - growthRate[i];
+            }
+            decrease = decrease / 7;
+
+            document.getElementById("decrease").textContent = decrease;
+
+            let count = 0;
+            var result = data.map(e => {
+                count ++;
+                return e.confirmed;
+            });
+
+            prev = result[count-1];
+            let currentRate = growthRate[count-1];
+            for (var i = 0; i < count; i++) {
+                var point = prev * currentRate; 
+                result.push(point);
+                prev = point;
+                currentRate -= decrease;
+            }
+            return result;
+        };
+    }
+  </script>
+
+</html>
