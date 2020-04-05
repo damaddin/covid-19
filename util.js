@@ -41,7 +41,7 @@ var chart = new Chart('chart', {
   },
 });
 
-async function start(callback, callback2, callbackActive, callbackActivePrediction) {
+async function start(callback, callback2, callbackActive, callbackSevere, callbackDeath) {
   const response = await fetch('https://pomber.github.io/covid19/timeseries.json');
   const data = await response.json();
 
@@ -97,6 +97,26 @@ async function start(callback, callback2, callbackActive, callbackActivePredicti
 
     if (params) Object.assign(activeDataset, params);
     chart.data.datasets.push(activeDataset);
+
+    const severeDataset = {
+      label: "severe cases",
+      data: callbackSevere(data[id]),
+      borderColor: 'hsl(10, 75%, 50%)',
+      backgroundColor: 'hsl(10, 75%, 50%)',
+    };
+
+    if (params) Object.assign(severeDataset, params);
+    chart.data.datasets.push(severeDataset);
+
+    const deathDataset = {
+      label: "deaths",
+      data: callbackDeath(data[id]),
+      borderColor: 'hsl(90, 75%, 50%)',
+      backgroundColor: 'hsl(90, 75%, 50%)',
+    };
+
+    if (params) Object.assign(deathDataset, params);
+    chart.data.datasets.push(deathDataset);
   }
 
   const max_days = chart.data.datasets.reduce((accum, e) => Math.max(accum, e.data.length), 0);

@@ -12,7 +12,11 @@
   <body>
     <canvas id="chart"></canvas>
 
-    <div id="decrease"></div> average growth rate decrease over last days (aka are measures effective)
+    <span id="rate"></span> growth rate <br/>
+    <span id="cfr"></span> % case fatality rate <br/>
+    <span id="doublingRate"></span> doubling rate in days <br/>
+
+    <span id="decrease"></span> assuming measures to limit spread are in place, how much does the growth rate decrease every day.
 
   </body>
 
@@ -23,10 +27,11 @@
       const recoveryTime = 14;
       const growthRateSample = 4;
       
+      var cfr = 0;
 
     chart.options.scales.yAxes[0].scaleLabel.labelString = 'Growth factor';
 
-    start(generateData(), generatePrediction(), generateDataActive());
+    start(generateData(), generatePrediction(), generateDataActive(), generateDataSevere(), generateDataDeath());
 
     function generateData() {
         return data => {
@@ -36,6 +41,10 @@
                 count ++;
                 return e.confirmed;
             });
+
+            cfr = data[ data.length-1 ].deaths / data[data.length -1].confirmed
+            document.getElementById("cfr").textContent =  cfr * 100;
+
 
            /* for (var i = 0; i < count; i++) {
                 result.push(0);
@@ -80,11 +89,91 @@
                 result[i] = result[i] - newCases[i - recoveryTime];
             }
 
-
             return result;
         };
     }
 
+
+
+
+    // just a copy of active with percentage.
+    function generateDataSevere() {
+        return data => {
+            var growthRate = calcGrowthRate(data);
+            var decrease = calcGrowthDecrease(growthRate);
+            
+            let count = 0;
+            var result = data.map(e => {
+                count ++;
+                return e.confirmed;
+            });
+
+            prev = result[count-1];
+            let currentRate = growthRate[count-1];
+            for (var i = 0; i < count; i++) {
+                var point = prev * currentRate; 
+                result.push(point);
+                prev = point;
+                currentRate -= decrease;
+                // no new cases are reported.
+                if (currentRate < 1) currentRate = 1;
+            }
+
+            var newCases = [];
+            newCases[0] = 0;
+
+            var healthy = 0;
+            for (var i = 1; i < result.length; i++) {
+                healthy += result[i] - result[i-1];
+                newCases[i] = healthy;
+            }
+
+            for (var i = recoveryTime; i < result.length; i++) {
+                result[i] = result[i] - newCases[i - recoveryTime];
+            }
+
+            // 20% severe cases with hospital.
+            var severe = []
+            for (var i = 0; i < result.length; i++) {
+                severe[i] = result[i] * 0.2; 
+            }
+
+            return severe;
+        };
+    }
+
+
+    function generateDataDeath() {
+        return data => {
+            var growthRate = calcGrowthRate(data);
+            var decrease = calcGrowthDecrease(growthRate);
+            
+            let count = 0;
+            var result = data.map(e => {
+                count ++;
+                return e.confirmed;
+            });
+
+            prev = result[count-1];
+            let currentRate = growthRate[count-1];
+            for (var i = 0; i < count; i++) {
+                var point = prev * currentRate; 
+                result.push(point);
+                prev = point;
+                currentRate -= decrease;
+                // no new cases are reported.
+                if (currentRate < 1) currentRate = 1;
+            }
+
+            var deaths = [];
+            for (var i = 0; i < result.length; i++) {
+                deaths[i] = result[i] * cfr; 
+            }
+
+            return deaths;  
+        };
+    
+    }
     
 
 
@@ -122,17 +211,20 @@
             prev = e.confirmed;
             return r;
         });
+        document.getElementById("rate").textContent = growthRate[growthRate.length -1 ];
+        document.getElementById("doublingRate").textContent = Math.log(2) / Math.log(growthRate[ growthRate.length -1 ]);
         return growthRate
     }
 
     function calcGrowthDecrease(growthRate) {
         // get the decrease in growth factor over the last x days;
-        let decrease = 0;
+       /* let rate = 0;
         for (var i = growthRate.length - growthRateSample; i < growthRate.length; i++) {
-            decrease += growthRate[i-1] - growthRate[i];
+            rate += growthRate[i];
         }
-        decrease = 0.006; //decrease / growthRateSample;
+        rate = rate / growthRateSample;*/
 
+        var decrease = 0.004;
         document.getElementById("decrease").textContent = decrease;
         return decrease;
     }
